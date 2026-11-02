@@ -1,1 +1,1 @@
-export default function Home() { return ( <main style={{ padding: "50px", textAlign: "center", fontFamily: "sans-serif" }}> <h1>Привет! Мой первый сайт работает!</h1> <p>Теперь мы можем сделать его сложным и полезным.</p> </main> ); }
+export default function Home() { return ( <main style={{ padding: "50px", textAlign: "center", fontFamily: "sans-serif" }}> <h1>taziz kot</h1> </main> ); }
