@@ -1,17 +1,61 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
+const COINS = [
+  { id: 'bitcoin', symbol: 'BTC' },
+  { id: 'ethereum', symbol: 'ETH' },
+  { id: 'solana', symbol: 'SOL' },
+  { id: 'binancecoin', symbol: 'BNB' },
+  { id: 'ripple', symbol: 'XRP' },
+  { id: 'cardano', symbol: 'ADA' },
+];
+
 export default function Home() {
+  const [prices, setPrices] = useState<any>({});
+
+  useEffect(() => {
+    const fetchPrices = async () => {
+      try {
+        const ids = COINS.map(c => c.id).join(',');
+        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
+        const data = await res.json();
+        setPrices(data);
+      } catch (e) {
+        console.error('Ошибка загрузки цен', e);
+      }
+    };
+
+    fetchPrices();
+    const interval = setInterval(fetchPrices, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex flex-col items-center justify-center p-6 text-white">
-      <div className="bg-white/10 backdrop-blur-md p-8 rounded-2xl shadow-2xl border border-white/20 text-center max-w-md w-full">
-        <h1 className="text-4xl font-bold mb-4">
-          Али кот бома ошна .!
-        </h1>
-        <p className="text-lg text-blue-100 mb-8">
-          Это мой первый серьезный сайт, созданный прямо на телефоне.
-        </p>
-        <button className="bg-white text-purple-600 font-bold py-3 px-8 rounded-full shadow-lg hover:scale-105 transition-transform">
-          Нажми на меня
-        </button>
+    <div style={{ padding: '20px', fontFamily: 'sans-serif', background: '#0f172a', minHeight: '100vh', color: 'white' }}>
+      <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>📊 Рынок</h1>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+        {COINS.map((coin) => {
+          const price = prices[coin.id]?.usd;
+          const change = prices[coin.id]?.usd_24h_change;
+          return (
+            <div key={coin.id} style={{ background: '#1e293b', padding: '15px', borderRadius: '12px', textAlign: 'center' }}>
+              <h2 style={{ margin: 0, fontSize: '18px' }}>{coin.symbol}</h2>
+              <p style={{ fontSize: '22px', fontWeight: 'bold', margin: '10px 0' }}>
+                ${price ? price.toLocaleString() : '...'}
+              </p>
+              {change && (
+                <p style={{ color: change >= 0 ? '#4ade80' : '#f87171', margin: 0 }}>
+                  {change >= 0 ? '▲' : '▼'} {Math.abs(change).toFixed(2)}%
+                </p>
+              )}
+            </div>
+          );
+        })}
       </div>
-    </main>
+      <p style={{ textAlign: 'center', marginTop: '40px', color: '#94a3b8', fontSize: '14px' }}>
+        Данные обновляются каждые 30 секунд
+      </p>
+    </div>
   );
 }
