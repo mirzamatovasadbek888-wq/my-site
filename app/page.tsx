@@ -1,94 +1,97 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+
+const COINS = [
+  { id: 'bitcoin', symbol: 'BTC', name: 'Bitcoin', color: '#F7931A' },
+  { id: 'ethereum', symbol: 'ETH', name: 'Ethereum', color: '#627EEA' },
+  { id: 'binancecoin', symbol: 'BNB', name: 'BNB', color: '#F3BA2F' },
+  { id: 'solana', symbol: 'SOL', name: 'Solana', color: '#14F195' },
+  { id: 'ripple', symbol: 'XRP', name: 'XRP', color: '#23292F' },
+];
 
 export default function Home() {
-  const [messages, setMessages] = useState<any[]>([]);
-  const [newMessage, setNewMessage] = useState('');
-  const [username, setUsername] = useState('');
-  const [status, setStatus] = useState('Бронза');
+  const [prices, setPrices] = useState<any>({});
 
-  // Загрузка сообщений
   useEffect(() => {
-    const fetchMessages = async () => {
-      const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
-      if (data) setMessages(data);
+    const fetchPrices = async () => {
+      try {
+        const ids = COINS.map(c => c.id).join(',');
+        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
+        const data = await res.json();
+        setPrices(data);
+      } catch (e) {
+        console.error('Ошибка загрузки цен', e);
+      }
     };
-    fetchMessages();
 
-    // Подписка на новые сообщения в реальном времени
-    const subscription = supabase
-      .channel('messages_channel')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-        setMessages(prev => [...prev, payload.new]);
-      })
-      .subscribe();
-
-    return () => { supabase.removeChannel(subscription); };
+    fetchPrices();
+    const interval = setInterval(fetchPrices, 30000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Отправка сообщения
-  const sendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !username.trim()) return;
-
-    await supabase.from('messages').insert([{ 
-      username: username, 
-      content: newMessage,
-      status: status 
-    }]);
-    setNewMessage('');
-  };
-
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif', background: '#0f172a', minHeight: '100vh', color: 'white' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>💬 Чат Трейдеров</h1>
+    <div style={{ minHeight: '100vh', background: '#0b0e11', color: 'white', fontFamily: 'Arial, sans-serif' }}>
       
-      <div style={{ background: '#1e293b', borderRadius: '12px', padding: '15px', height: '50vh', overflowY: 'auto', marginBottom: '20px' }}>
-        {messages.length === 0 && <p style={{ textAlign: 'center', color: '#94a3b8' }}>Пока сообщений нет...</p>}
-        {messages.map((msg, i) => (
-          <div key={i} style={{ marginBottom: '10px', padding: '10px', background: '#334155', borderRadius: '8px' }}>
-            <span style={{ fontWeight: 'bold', color: '#4ade80' }}>{msg.username}</span>
-            <span style={{ fontSize: '12px', color: '#cbd5e1', marginLeft: '10px' }}>[{msg.status}]</span>
-            <p style={{ margin: '5px 0 0 0' }}>{msg.content}</p>
-          </div>
-        ))}
-      </div>
+      {/* ШАПКА С ЛОГОТИПОМ-БАБОЧКОЙ */}
+      <header style={{ 
+        padding: '15px 20px', 
+        background: '#1e2329', 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '10px', 
+        borderBottom: '1px solid #2b3139'
+      }}>
+        <img src="/logo.svg" alt="ASRO-T Logo" style={{ width: '32px', height: '32px' }} />
+        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: '800', letterSpacing: '1px', color: '#FCD535' }}>
+          ASRO-T
+        </h1>
+      </header>
 
-      <form onSubmit={sendMessage} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <input 
-            type="text" 
-            placeholder="Твой ник" 
-            value={username} 
-            onChange={e => setUsername(e.target.value)}
-            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: '#1e293b', color: 'white' }}
-          />
-          <select 
-            value={status} 
-            onChange={e => setStatus(e.target.value)}
-            style={{ padding: '10px', borderRadius: '8px', border: 'none', background: '#1e293b', color: 'white' }}
-          >
-            <option>Бронза</option>
-            <option>Серебро</option>
-            <option>Золото</option>
-            <option>Алмаз</option>
-          </select>
+      {/* СПИСОК МОНЕТ */}
+      <main style={{ padding: '10px 0' }}>
+        <div style={{ padding: '0 20px', marginBottom: '10px', fontSize: '14px', color: '#848e9c' }}>
+          Популярные рынки
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <input 
-            type="text" 
-            placeholder="Написать сообщение..." 
-            value={newMessage} 
-            onChange={e => setNewMessage(e.target.value)}
-            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: '#1e293b', color: 'white' }}
-          />
-          <button type="submit" style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#4ade80', color: '#0f172a', fontWeight: 'bold' }}>
-            Отправить
-          </button>
-        </div>
-      </form>
+
+        {COINS.map((coin) => {
+          const price = prices[coin.id]?.usd;
+          const change = prices[coin.id]?.usd_24h_change;
+          const isPositive = change >= 0;
+
+          return (
+            <div key={coin.id} style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between', 
+              padding: '15px 20px',
+              borderBottom: '1px solid #1e2329'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ 
+                  width: '32px', height: '32px', borderRadius: '50%', 
+                  background: coin.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '14px', fontWeight: 'bold', color: 'white'
+                }}>
+                  {coin.symbol}
+                </div>
+                <div>
+                  <div style={{ fontSize: '16px', fontWeight: 'bold' }}>{coin.symbol}</div>
+                  <div style={{ fontSize: '12px', color: '#848e9c' }}>{coin.name}</div>
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '16px', fontWeight: 'bold' }}>
+                  ${price ? price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '...'}
+                </div>
+                <div style={{ fontSize: '14px', color: isPositive ? '#0ecb81' : '#f6465d' }}>
+                  {isPositive ? '+' : ''}{change ? change.toFixed(2) : '0.00'}%
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </main>
     </div>
   );
 }
