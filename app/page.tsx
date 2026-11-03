@@ -42,7 +42,7 @@ export default function Home() {
         gap: '10px', 
         borderBottom: '1px solid #2b3139'
       }}>
-        <img src="/logo.svg" alt="ASRO-T Logo" style={{ width: '32px', height: '32px' }} />
+        <img src="/logo.png" alt="ASRO Logo" style={{ height: "40px", width: "auto" }} />
         <h1 style={{ margin: 0, fontSize: '22px', fontWeight: '800', letterSpacing: '1px', color: '#FCD535' }}>
           ASRO-T
         </h1>
