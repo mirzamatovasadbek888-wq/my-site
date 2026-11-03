@@ -18,9 +18,8 @@ export default function Home() {
   
   const [regData, setRegData] = useState({ nickname: '', age: '', experience: '', password: '', email: '', word1: '', word2: '', word3: '' });
   const [loginData, setLoginData] = useState({ email: '', password: '' });
-  const [isWordsValid, setIsWordsValid] = useState(false);
 
-  const [activeTab, setActiveTab] = useState('profile'); // По умолчанию открываем профиль
+  const [activeTab, setActiveTab] = useState('center'); 
   const [prices, setPrices] = useState<any>({});
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -31,7 +30,6 @@ export default function Home() {
     setIsLoaded(true);
   }, []);
 
-  // ... (логика цен и чата остается без изменений)
   useEffect(() => {
     if (activeTab !== 'center') return;
     const fetchPrices = async () => {
@@ -50,9 +48,12 @@ export default function Home() {
       if (data) setMessages(data);
     };
     fetchMessages();
-    const subscription = supabase.channel('messages_channel').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+    const subscription = supabase
+      .channel('messages_channel')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
         setMessages(prev => [...prev, payload.new]);
-      }).subscribe();
+      })
+      .subscribe();
     return () => { supabase.removeChannel(subscription); };
   }, [activeTab, user]);
 
@@ -65,9 +66,9 @@ export default function Home() {
 
   const validateWords = () => {
     const w1 = regData.word1.trim(); const w2 = regData.word2.trim(); const w3 = regData.word3.trim();
-    if (w1.length <= 5 || w2.length <= 5 || w3.length <= 5) return alert('Слова > 5 букв!');
+    if (w1.length <= 5 || w2.length <= 5 || w3.length <= 5) return alert('Слова должны быть > 5 букв!');
     if (w1 === w2 || w2 === w3 || w1 === w3) return alert('Слова должны быть разными!');
-    setIsWordsValid(true); setAuthStep(4);
+    setAuthStep(4); // Переход на экран сохранения
   };
 
   const handleFinalRegister = async () => {
@@ -76,7 +77,7 @@ export default function Home() {
     const { error } = await supabase.from('users').insert([{
       id: newId, nickname: regData.nickname, age: regData.age, experience: regData.experience, password: regData.password, email: regData.email, secret_words: secret 
     }]);
-    if (error) { alert('Ошибка БД!'); console.log(error); } 
+    if (error) { alert('Ошибка базы данных!'); console.log(error); } 
     else {
       const userData = { nickname: regData.nickname, experience: regData.experience };
       localStorage.setItem('asro_user', JSON.stringify(userData)); setUser(userData);
@@ -95,15 +96,16 @@ export default function Home() {
 
   const copyToClipboard = () => {
     const text = `Секретная фраза ASRO:\n1. ${regData.word1}\n2. ${regData.word2}\n3. ${regData.word3}`;
-    navigator.clipboard.writeText(text); alert('Слова скопированы!');
+    navigator.clipboard.writeText(text); alert('Слова скопированы! Сохраните их.');
   };
 
   if (!isLoaded) return <div style={{ background: '#000000', minHeight: '100vh' }}></div>;
 
-  // ЭКРАНЫ РЕГИСТРАЦИИ (остались без изменений, только стиль)
+  // ЭКРАНЫ РЕГИСТРАЦИИ
   if (!user) {
     return (
       <div style={{ minHeight: '100vh', background: '#000000', color: 'white', fontFamily: 'Arial, sans-serif', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '30px' }}>
+        
         {authStep === 0 && (
           <div style={{ textAlign: 'left' }}>
             <img src="/logo.svg" alt="ASRO" style={{ height: '40px', marginBottom: '60px' }} />
@@ -113,12 +115,84 @@ export default function Home() {
             <button onClick={() => setAuthStep(5)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white', fontSize: '16px', fontWeight: 'bold' }}>Войти</button>
           </div>
         )}
-        {/* ... Остальные шаги регистрации (1,2,3,4,5) оставляем как были, чтобы не загромождать код. Они работают. */}
-        {authStep === 1 && ( /* ... код шага 1 ... */ <div><button onClick={() => setAuthStep(2)}>Далее</button></div> )}
-        {authStep === 2 && ( /* ... код шага 2 ... */ <div><button onClick={() => setAuthStep(3)}>Далее</button></div> )}
-        {authStep === 3 && ( /* ... код шага 3 ... */ <div><button onClick={validateWords}>Далее</button></div> )}
-        {authStep === 4 && ( /* ... код шага 4 ... */ <div><button onClick={handleFinalRegister}>Завершить</button></div> )}
-        {authStep === 5 && ( /* ... код шага 5 ... */ <div><button onClick={handleLogin}>Войти</button></div> )}
+
+        {authStep === 1 && (
+          <div>
+            <h2 style={{ fontSize: '24px', marginBottom: '30px', fontWeight: 'bold' }}>Шаг 1: О тебе</h2>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Никнейм</label>
+              <input type="text" placeholder="Ваш ник" value={regData.nickname} onChange={e => setRegData({...regData, nickname: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px' }} />
+            </div>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Возраст</label>
+              <input type="number" placeholder="Ваш возраст" value={regData.age} onChange={e => setRegData({...regData, age: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px' }} />
+            </div>
+            <div style={{ marginBottom: '40px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Опыт на рынке</label>
+              <input type="text" placeholder="Например: 3" value={regData.experience} onChange={e => setRegData({...regData, experience: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px' }} />
+            </div>
+            <button onClick={() => setAuthStep(2)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#000000', fontSize: '16px', fontWeight: 'bold' }}>Продолжить</button>
+            <button onClick={() => setAuthStep(0)} style={{ width: '100%', padding: '16px', marginTop: '15px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white', fontSize: '16px' }}>Назад</button>
+          </div>
+        )}
+
+        {authStep === 2 && (
+          <div>
+            <h2 style={{ fontSize: '24px', marginBottom: '30px', fontWeight: 'bold' }}>Шаг 2: Безопасность</h2>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Email</label>
+              <input type="email" placeholder="example@mail.com" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px' }} />
+            </div>
+            <div style={{ marginBottom: '40px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Пароль</label>
+              <input type="password" placeholder="Придумайте пароль" value={regData.password} onChange={e => setRegData({...regData, password: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px' }} />
+            </div>
+            <button onClick={() => setAuthStep(3)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#000000', fontSize: '16px', fontWeight: 'bold' }}>Далее</button>
+            <button onClick={() => setAuthStep(1)} style={{ width: '100%', padding: '16px', marginTop: '15px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white', fontSize: '16px' }}>Назад</button>
+          </div>
+        )}
+
+        {authStep === 3 && (
+          <div>
+            <h2 style={{ fontSize: '24px', marginBottom: '10px', fontWeight: 'bold' }}>Секретная фраза</h2>
+            <p style={{ color: '#848e9c', fontSize: '14px', marginBottom: '30px' }}>Придумайте 3 разных слова (каждое > 5 букв).</p>
+            <input type="text" placeholder="Слово 1" value={regData.word1} onChange={e => setRegData({...regData, word1: e.target.value})} style={{ width: '100%', padding: '16px', marginBottom: '15px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
+            <input type="text" placeholder="Слово 2" value={regData.word2} onChange={e => setRegData({...regData, word2: e.target.value})} style={{ width: '100%', padding: '16px', marginBottom: '15px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
+            <input type="text" placeholder="Слово 3" value={regData.word3} onChange={e => setRegData({...regData, word3: e.target.value})} style={{ width: '100%', padding: '16px', marginBottom: '30px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
+            <button onClick={validateWords} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#000000', fontSize: '16px', fontWeight: 'bold' }}>Продолжить</button>
+            <button onClick={() => setAuthStep(2)} style={{ width: '100%', padding: '16px', marginTop: '15px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white', fontSize: '16px' }}>Назад</button>
+          </div>
+        )}
+
+        {authStep === 4 && (
+          <div>
+            <h2 style={{ fontSize: '24px', marginBottom: '10px', fontWeight: 'bold' }}>Сохраните фразу</h2>
+            <p style={{ color: '#848e9c', fontSize: '14px', marginBottom: '20px' }}>Эти слова нужны для восстановления.</p>
+            <div style={{ background: '#1e2329', border: '1px solid #FCD535', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
+              <div style={{ marginBottom: '10px', fontSize: '18px', fontWeight: 'bold' }}>1. {regData.word1}</div>
+              <div style={{ marginBottom: '10px', fontSize: '18px', fontWeight: 'bold' }}>2. {regData.word2}</div>
+              <div style={{ fontSize: '18px', fontWeight: 'bold' }}>3. {regData.word3}</div>
+            </div>
+            <button onClick={copyToClipboard} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #FCD535', background: 'transparent', color: '#FCD535', fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>📋 Скопировать</button>
+            <button onClick={handleFinalRegister} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#000000', fontSize: '16px', fontWeight: 'bold' }}>Завершить</button>
+          </div>
+        )}
+
+        {authStep === 5 && (
+          <div>
+            <h2 style={{ fontSize: '24px', marginBottom: '30px', fontWeight: 'bold' }}>Вход</h2>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Email</label>
+              <input type="email" placeholder="Ваш email" value={loginData.email} onChange={e => setLoginData({...loginData, email: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px' }} />
+            </div>
+            <div style={{ marginBottom: '40px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Пароль</label>
+              <input type="password" placeholder="Ваш пароль" value={loginData.password} onChange={e => setLoginData({...loginData, password: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px' }} />
+            </div>
+            <button onClick={handleLogin} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#000000', fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>Войти</button>
+            <button onClick={() => setAuthStep(0)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white', fontSize: '16px' }}>Назад</button>
+          </div>
+        )}
       </div>
     );
   }
@@ -127,16 +201,14 @@ export default function Home() {
   return (
     <div style={{ minHeight: '100vh', background: '#000000', color: 'white', fontFamily: 'Arial, sans-serif', paddingBottom: '80px' }}>
       
-      {/* ВЕРХНЕЕ МЕНЮ */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, background: '#1e2329', display: 'flex', justifyContent: 'space-around', padding: '15px 0', borderBottom: '1px solid #2b3139', zIndex: 999 }}>
-        <button onClick={() => setActiveTab('center')} style={{ background: 'none', border: 'none', color: activeTab === 'center' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>Центр</button>
-        <button onClick={() => setActiveTab('chat')} style={{ background: 'none', border: 'none', color: activeTab === 'chat' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>💬 Чат</button>
-        <button onClick={() => setActiveTab('profile')} style={{ background: 'none', border: 'none', color: activeTab === 'profile' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>👤 Профиль</button>
+        <button onClick={() => setActiveTab('center')} style={{ background: 'none', border: 'none', color: activeTab === 'center' ? '#FCD535' : '#848e9c', fontWeight: 'bold', fontSize: '15px' }}>Центр</button>
+        <button onClick={() => setActiveTab('chat')} style={{ background: 'none', border: 'none', color: activeTab === 'chat' ? '#FCD535' : '#848e9c', fontWeight: 'bold', fontSize: '15px' }}>💬 Чат</button>
+        <button onClick={() => setActiveTab('profile')} style={{ background: 'none', border: 'none', color: activeTab === 'profile' ? '#FCD535' : '#848e9c', fontWeight: 'bold', fontSize: '15px' }}>👤 Профиль</button>
       </nav>
 
       <main style={{ paddingTop: '65px', paddingLeft: '15px', paddingRight: '15px' }}>
         
-        {/* ВКЛАДКА ЦЕНТР */}
         {activeTab === 'center' && (
           <div>
              <div style={{ padding: '20px 0', fontSize: '14px', color: '#848e9c' }}>Центр</div>
@@ -149,7 +221,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* ВКЛАДКА ЧАТ */}
         {activeTab === 'chat' && (
           <div>
             <div style={{ background: '#1e293b', borderRadius: '12px', padding: '15px', height: '55vh', overflowY: 'auto', marginBottom: '15px' }}>
@@ -167,118 +238,22 @@ export default function Home() {
           </div>
         )}
 
-        {/* ВКЛАДКА ПРОФИЛЬ (НОВЫЙ ДИЗАЙН) */}
         {activeTab === 'profile' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            
-            {/* ШАПКА ПРОФИЛЯ */}
-            <div style={{ position: 'relative', background: 'linear-gradient(180deg, rgba(252,213,53,0.1) 0%, rgba(0,0,0,0) 100%)', borderRadius: '16px', padding: '20px', border: '1px solid #2b3139', overflow: 'hidden' }}>
-              {/* Декоративный график на фоне */}
-              <div style={{ position: 'absolute', top: 0, right: 0, opacity: 0.2, width: '100%', height: '100%', backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 100 L20 80 L40 90 L60 50 L80 60 L100 20 L100 100 Z\' fill=\'%23FCD535\'/%3E%3C/svg%3E")', backgroundSize: 'cover', zIndex: 0 }}></div>
-              
-              <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '15px' }}>
-                {/* Золотая аватарка с короной */}
-                <div style={{ position: 'relative' }}>
-                  <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#000', border: '3px solid #FCD535', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '36px', fontWeight: 'bold', color: '#FCD535', boxShadow: '0 0 15px rgba(252,213,53,0.3)' }}>
-                    {user.nickname.charAt(0).toUpperCase()}
-                  </div>
-                  <div style={{ position: 'absolute', bottom: '-5px', right: '-5px', background: '#FCD535', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px' }}>👑</div>
-                </div>
-                
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 'bold' }}>{user.nickname}</h2>
-                    <span style={{ color: '#FCD535', fontSize: '18px' }}>✔</span>
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#848e9c', marginTop: '4px' }}>🇺🇿 Uzbekistan • Trader #0001</div>
-                  <div style={{ display: 'inline-block', background: 'rgba(252,213,53,0.2)', color: '#FCD535', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', marginTop: '8px' }}>
-                    📊 Novice • Level 2
-                  </div>
-                </div>
+          <div style={{ padding: '20px 0' }}>
+            <div style={{ background: '#1e2329', borderRadius: '16px', padding: '30px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', border: '1px solid #2b3139' }}>
+              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#FCD535', color: '#000000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', fontWeight: 'bold', marginBottom: '15px' }}>
+                {user.nickname.charAt(0).toUpperCase()}
               </div>
+              <h2 style={{ margin: '0 0 5px 0', fontSize: '24px' }}>{user.nickname}</h2>
+              <div style={{ fontSize: '14px', color: '#848e9c' }}>Опыт: {user.experience}</div>
             </div>
-
-            {/* СТАТИСТИКА (4 колонки) */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '10px', background: '#1e2329', padding: '15px', borderRadius: '12px', border: '1px solid #2b3139', textAlign: 'center' }}>
-              <div><div style={{ fontSize: '18px', fontWeight: 'bold' }}>2</div><div style={{ fontSize: '10px', color: '#848e9c' }}>Уровень</div></div>
-              <div><div style={{ fontSize: '18px', fontWeight: 'bold', color: '#FCD535' }}>742</div><div style={{ fontSize: '10px', color: '#848e9c' }}>Score</div></div>
-              <div><div style={{ fontSize: '18px', fontWeight: 'bold' }}>342</div><div style={{ fontSize: '10px', color: '#848e9c' }}>Сделки</div></div>
-              <div><div style={{ fontSize: '18px', fontWeight: 'bold', color: '#0ecb81' }}>68%</div><div style={{ fontSize: '10px', color: '#848e9c' }}>Успех</div></div>
-            </div>
-
-            {/* ТОРГОВАЯ СТАТИСТИКА (График) */}
-            <div style={{ background: '#1e2329', padding: '15px', borderRadius: '12px', border: '1px solid #2b3139' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                <div style={{ fontWeight: 'bold' }}>📈 Торговая статистика</div>
-                <div style={{ fontSize: '12px', color: '#848e9c' }}>За все время</div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                <div>
-                  <div style={{ fontSize: '12px', color: '#848e9c' }}>Прибыль</div>
-                  <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#0ecb81' }}>+$12,350.75</div>
-                  <div style={{ fontSize: '12px', color: '#0ecb81' }}>▲ +12.4%</div>
-                </div>
-                {/* Имитация графика */}
-                <div style={{ width: '120px', height: '50px', background: 'linear-gradient(to top, rgba(14,203,129,0.2), transparent)', borderBottom: '2px solid #0ecb81', position: 'relative' }}>
-                   <svg width="120" height="50" viewBox="0 0 120 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M0 40 L20 30 L40 35 L60 20 L80 25 L100 10 L120 5" stroke="#0ecb81" strokeWidth="2" fill="none"/>
-                   </svg>
-                </div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', borderTop: '1px solid #2b3139', paddingTop: '10px' }}>
-                <div><div style={{ fontSize: '10px', color: '#848e9c' }}>Макс. просадка</div><div style={{ fontSize: '14px', color: '#f6465d', fontWeight: 'bold' }}>-5.8%</div></div>
-                <div><div style={{ fontSize: '10px', color: '#848e9c' }}>R/R</div><div style={{ fontSize: '14px', fontWeight: 'bold' }}>1.82</div></div>
-              </div>
-            </div>
-
-            {/* ДОСТИЖЕНИЯ */}
-            <div style={{ background: '#1e2329', padding: '15px', borderRadius: '12px', border: '1px solid #2b3139' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                <div style={{ fontWeight: 'bold' }}>🏆 Достижения</div>
-                <div style={{ fontSize: '12px', color: '#848e9c' }}>3 / 8 &gt;</div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'center' }}>
-                <div><div style={{ fontSize: '30px' }}>📊</div><div style={{ fontSize: '10px', color: '#848e9c' }}>100 сделок</div></div>
-                <div><div style={{ fontSize: '30px' }}>🛡️</div><div style={{ fontSize: '10px', color: '#848e9c' }}>Дисциплина</div></div>
-                <div><div style={{ fontSize: '30px' }}>🎯</div><div style={{ fontSize: '10px', color: '#848e9c' }}>Анализ</div></div>
-                <div style={{ opacity: 0.3 }}><div style={{ fontSize: '30px' }}>🔒</div><div style={{ fontSize: '10px', color: '#848e9c' }}>Профи</div></div>
-                <div style={{ opacity: 0.3 }}><div style={{ fontSize: '30px' }}>🔒</div><div style={{ fontSize: '10px', color: '#848e9c' }}>Легенда</div></div>
-              </div>
-            </div>
-
-            {/* СПИСОК НАСТРОЕК */}
             <div style={{ background: '#1e2329', borderRadius: '12px', border: '1px solid #2b3139', overflow: 'hidden' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px', borderBottom: '1px solid #2b3139' }}>
-                <div>👤 Личная информация</div> <div style={{ color: '#848e9c' }}>&gt;</div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px', borderBottom: '1px solid #2b3139' }}>
-                <div>📈 История сделок</div> <div style={{ color: '#848e9c' }}>&gt;</div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px', borderBottom: '1px solid #2b3139' }}>
-                <div>🛡️ Мой стиль риска</div> <div style={{ color: '#848e9c' }}>&gt;</div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '15px' }}>
-                <div>📖 Обучение и ресурсы</div> <div style={{ color: '#848e9c' }}>&gt;</div>
-              </div>
+              <div onClick={() => { localStorage.removeItem('asro_user'); setUser(null); setAuthStep(0); }} style={{ padding: '15px 20px', color: '#f6465d', cursor: 'pointer', textAlign: 'center' }}>🚪 Выйти</div>
             </div>
-
-            {/* КНОПКА ПРЕМИУМ */}
-            <div onClick={() => alert('Скоро!')} style={{ background: 'linear-gradient(90deg, #1e2329 0%, #3a2f10 100%)', border: '1px solid #FCD535', borderRadius: '12px', padding: '15px', display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer' }}>
-              <div style={{ fontSize: '30px' }}>👑</div>
-              <div>
-                <div style={{ fontWeight: 'bold', color: '#FCD535' }}>ASRO Premium</div>
-                <div style={{ fontSize: '12px', color: '#848e9c' }}>Достигните новых высот</div>
-              </div>
-            </div>
-
-            {/* КНОПКА ВЫХОДА */}
-            <div onClick={() => { localStorage.removeItem('asro_user'); setUser(null); setAuthStep(0); }} style={{ padding: '15px', color: '#f6465d', cursor: 'pointer', textAlign: 'center', background: '#1e2329', borderRadius: '12px', border: '1px solid #2b3139', marginTop: '10px' }}>🚪 Выйти из аккаунта</div>
-
           </div>
         )}
       </main>
 
-      {/* НИЖНЯЯ ПАНЕЛЬ */}
       <footer style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#1e2329', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 0', borderTop: '1px solid #2b3139', height: '60px' }}>
         <img src="/logo.svg" alt="ASRO Logo" style={{ height: '30px', width: 'auto' }} />
       </footer>
