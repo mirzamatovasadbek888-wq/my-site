@@ -23,6 +23,21 @@ export default function Home() {
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
 
+  // Скрываем плашку Netlify
+  useEffect(() => {
+    const hideBadge = () => {
+      const badges = document.querySelectorAll('a[href*="netlify.com"]');
+      badges.forEach((badge: any) => {
+        if (badge.innerText.includes('Powered by') || badge.getAttribute('id') === 'netlify-badge') {
+          badge.style.display = 'none';
+        }
+      });
+    };
+    hideBadge();
+    const interval = setInterval(hideBadge, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     const savedUser = localStorage.getItem('asro_user');
     if (savedUser) setUser(JSON.parse(savedUser));
@@ -65,8 +80,9 @@ export default function Home() {
 
   const handleRegister = async () => {
     if (!regData.nickname || !regData.password) return alert('Заполни ник и пароль');
+    const newId = Math.floor(Math.random() * 1000000);
     const { error } = await supabase.from('users').insert([{
-      nickname: regData.nickname, age: regData.age, experience: regData.experience, password: regData.password, email: regData.email
+      id: newId, nickname: regData.nickname, age: regData.age, experience: regData.experience, password: regData.password, email: regData.email
     }]);
     if (error) { alert('Ошибка базы данных!'); console.log(error); } 
     else {
@@ -114,7 +130,7 @@ export default function Home() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0b0e11', color: 'white', fontFamily: 'Arial, sans-serif', paddingBottom: '70px' }}>
+    <div style={{ minHeight: '100vh', background: '#0b0e11', color: 'white', fontFamily: 'Arial, sans-serif', paddingBottom: '90px' }}>
       <header style={{ padding: '15px 20px', background: '#1e2329', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #2b3139' }}>
         <img src="/logo.svg" alt="ASRO Logo" style={{ height: '40px', width: 'auto' }} />
       </header>
@@ -161,7 +177,7 @@ export default function Home() {
           </div>
         )}
       </main>
-      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#1e2329', display: 'flex', justifyContent: 'space-around', padding: '15px 0', borderTop: '1px solid #2b3139' }}>
+      <nav style={{ position: 'fixed', bottom: '20px', left: '10px', right: '10px', background: '#1e2329', display: 'flex', justifyContent: 'space-around', padding: '12px 0', borderTop: '1px solid #2b3139', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
         <button onClick={() => setActiveTab('center')} style={{ background: 'none', border: 'none', color: activeTab === 'center' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>Центр</button>
         <button onClick={() => setActiveTab('chat')} style={{ background: 'none', border: 'none', color: activeTab === 'chat' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>💬 Чат</button>
         <button onClick={() => setActiveTab('profile')} style={{ background: 'none', border: 'none', color: activeTab === 'profile' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>👤 Профиль</button>
