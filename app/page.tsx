@@ -16,10 +16,14 @@ export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [authStep, setAuthStep] = useState(0); 
   
-  const [regData, setRegData] = useState({ nickname: '', age: '', experience: '', password: '', email: '', word1: '', word2: '', word3: '' });
+  // Добавили новые поля в форму регистрации
+  const [regData, setRegData] = useState({ 
+    nickname: '', first_name: '', last_name: '', birth_year: '', gender: 'Мужской', 
+    age: '', experience: '', password: '', email: '', word1: '', word2: '', word3: '' 
+  });
   const [loginData, setLoginData] = useState({ email: '', password: '' });
 
-  const [activeTab, setActiveTab] = useState('center'); 
+  const [activeTab, setActiveTab] = useState('profile'); 
   const [prices, setPrices] = useState<any>({});
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -48,12 +52,9 @@ export default function Home() {
       if (data) setMessages(data);
     };
     fetchMessages();
-    const subscription = supabase
-      .channel('messages_channel')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+    const subscription = supabase.channel('messages_channel').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
         setMessages(prev => [...prev, payload.new]);
-      })
-      .subscribe();
+      }).subscribe();
     return () => { supabase.removeChannel(subscription); };
   }, [activeTab, user]);
 
@@ -66,21 +67,32 @@ export default function Home() {
 
   const validateWords = () => {
     const w1 = regData.word1.trim(); const w2 = regData.word2.trim(); const w3 = regData.word3.trim();
-    if (w1.length <= 5 || w2.length <= 5 || w3.length <= 5) return alert('Слова должны быть > 5 букв!');
+    if (w1.length <= 5 || w2.length <= 5 || w3.length <= 5) return alert('Слова > 5 букв!');
     if (w1 === w2 || w2 === w3 || w1 === w3) return alert('Слова должны быть разными!');
-    setAuthStep(4); // Переход на экран сохранения
+    setAuthStep(4);
   };
 
   const handleFinalRegister = async () => {
     const secret = `${regData.word1.trim()}, ${regData.word2.trim()}, ${regData.word3.trim()}`;
     const newId = Math.floor(Math.random() * 1000000);
+    
+    // Сохраняем все новые поля в базу
     const { error } = await supabase.from('users').insert([{
-      id: newId, nickname: regData.nickname, age: regData.age, experience: regData.experience, password: regData.password, email: regData.email, secret_words: secret 
+      id: newId, nickname: regData.nickname, first_name: regData.first_name, 
+      last_name: regData.last_name, birth_year: regData.birth_year, gender: regData.gender,
+      age: regData.age, experience: regData.experience, password: regData.password, email: regData.email, secret_words: secret 
     }]);
+    
     if (error) { alert('Ошибка базы данных!'); console.log(error); } 
     else {
-      const userData = { nickname: regData.nickname, experience: regData.experience };
-      localStorage.setItem('asro_user', JSON.stringify(userData)); setUser(userData);
+      // Сохраняем в память телефона для быстрого входа
+      const userData = { 
+        nickname: regData.nickname, experience: regData.experience,
+        first_name: regData.first_name, last_name: regData.last_name, 
+        birth_year: regData.birth_year, gender: regData.gender, email: regData.email 
+      };
+      localStorage.setItem('asro_user', JSON.stringify(userData)); 
+      setUser(userData);
     }
   };
 
@@ -89,19 +101,23 @@ export default function Home() {
     const { data, error } = await supabase.from('users').select('*').eq('email', loginData.email).eq('password', loginData.password).single();
     if (error || !data) alert('Неверный Email или пароль!');
     else {
-      const userData = { nickname: data.nickname, experience: data.experience };
-      localStorage.setItem('asro_user', JSON.stringify(userData)); setUser(userData);
+      const userData = { 
+        nickname: data.nickname, experience: data.experience,
+        first_name: data.first_name, last_name: data.last_name, 
+        birth_year: data.birth_year, gender: data.gender, email: data.email 
+      };
+      localStorage.setItem('asro_user', JSON.stringify(userData)); 
+      setUser(userData);
     }
   };
 
   const copyToClipboard = () => {
     const text = `Секретная фраза ASRO:\n1. ${regData.word1}\n2. ${regData.word2}\n3. ${regData.word3}`;
-    navigator.clipboard.writeText(text); alert('Слова скопированы! Сохраните их.');
+    navigator.clipboard.writeText(text); alert('Слова скопированы!');
   };
 
   if (!isLoaded) return <div style={{ background: '#000000', minHeight: '100vh' }}></div>;
 
-  // ЭКРАНЫ РЕГИСТРАЦИИ
   if (!user) {
     return (
       <div style={{ minHeight: '100vh', background: '#000000', color: 'white', fontFamily: 'Arial, sans-serif', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '30px' }}>
@@ -109,98 +125,120 @@ export default function Home() {
         {authStep === 0 && (
           <div style={{ textAlign: 'left' }}>
             <img src="/logo.svg" alt="ASRO" style={{ height: '40px', marginBottom: '60px' }} />
-            <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '15px' }}>Добро пожаловать</h1>
-            <p style={{ color: '#848e9c', marginBottom: '50px' }}>Платформа для трейдеров.</p>
+            <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '15px' }}>Добро пожаловать в ASRO</h1>
+            <p style={{ color: '#848e9c', marginBottom: '50px' }}>Профессиональная платформа.</p>
             <button onClick={() => setAuthStep(1)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#000000', fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>Создать аккаунт</button>
             <button onClick={() => setAuthStep(5)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white', fontSize: '16px', fontWeight: 'bold' }}>Войти</button>
           </div>
         )}
 
+        {/* Экран 1: Личные данные */}
         {authStep === 1 && (
           <div>
-            <h2 style={{ fontSize: '24px', marginBottom: '30px', fontWeight: 'bold' }}>Шаг 1: О тебе</h2>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Никнейм</label>
-              <input type="text" placeholder="Ваш ник" value={regData.nickname} onChange={e => setRegData({...regData, nickname: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px' }} />
+            <h2 style={{ fontSize: '24px', marginBottom: '20px', fontWeight: 'bold' }}>Личные данные</h2>
+            
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '12px', marginBottom: '5px' }}>Имя</label>
+              <input type="text" placeholder="Иван" value={regData.first_name} onChange={e => setRegData({...regData, first_name: e.target.value})} style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
             </div>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Возраст</label>
-              <input type="number" placeholder="Ваш возраст" value={regData.age} onChange={e => setRegData({...regData, age: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px' }} />
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '12px', marginBottom: '5px' }}>Фамилия</label>
+              <input type="text" placeholder="Иванов" value={regData.last_name} onChange={e => setRegData({...regData, last_name: e.target.value})} style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
             </div>
-            <div style={{ marginBottom: '40px' }}>
-              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Опыт на рынке</label>
-              <input type="text" placeholder="Например: 3" value={regData.experience} onChange={e => setRegData({...regData, experience: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px' }} />
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', color: '#848e9c', fontSize: '12px', marginBottom: '5px' }}>Год рождения</label>
+                <input type="number" placeholder="2000" value={regData.birth_year} onChange={e => setRegData({...regData, birth_year: e.target.value})} style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', color: '#848e9c', fontSize: '12px', marginBottom: '5px' }}>Пол</label>
+                <select value={regData.gender} onChange={e => setRegData({...regData, gender: e.target.value})} style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }}>
+                  <option>Мужской</option>
+                  <option>Женский</option>
+                </select>
+              </div>
             </div>
+            <div style={{ marginBottom: '30px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '12px', marginBottom: '5px' }}>Никнейм (виден всем)</label>
+              <input type="text" placeholder="Ваш ник" value={regData.nickname} onChange={e => setRegData({...regData, nickname: e.target.value})} style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
+            </div>
+
             <button onClick={() => setAuthStep(2)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#000000', fontSize: '16px', fontWeight: 'bold' }}>Продолжить</button>
-            <button onClick={() => setAuthStep(0)} style={{ width: '100%', padding: '16px', marginTop: '15px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white', fontSize: '16px' }}>Назад</button>
+            <button onClick={() => setAuthStep(0)} style={{ width: '100%', padding: '16px', marginTop: '10px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white' }}>Назад</button>
           </div>
         )}
 
+        {/* Экран 2: Опыт и Безопасность */}
         {authStep === 2 && (
           <div>
-            <h2 style={{ fontSize: '24px', marginBottom: '30px', fontWeight: 'bold' }}>Шаг 2: Безопасность</h2>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Email</label>
-              <input type="email" placeholder="example@mail.com" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px' }} />
+            <h2 style={{ fontSize: '24px', marginBottom: '20px', fontWeight: 'bold' }}>Безопасность</h2>
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '12px', marginBottom: '5px' }}>Опыт на рынке (в годах)</label>
+              <input type="text" placeholder="Например: 3" value={regData.experience} onChange={e => setRegData({...regData, experience: e.target.value})} style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
             </div>
-            <div style={{ marginBottom: '40px' }}>
-              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Пароль</label>
-              <input type="password" placeholder="Придумайте пароль" value={regData.password} onChange={e => setRegData({...regData, password: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px' }} />
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '12px', marginBottom: '5px' }}>Email</label>
+              <input type="email" placeholder="example@mail.com" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
+            </div>
+            <div style={{ marginBottom: '30px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '12px', marginBottom: '5px' }}>Пароль</label>
+              <input type="password" placeholder="Придумайте пароль" value={regData.password} onChange={e => setRegData({...regData, password: e.target.value})} style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
             </div>
             <button onClick={() => setAuthStep(3)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#000000', fontSize: '16px', fontWeight: 'bold' }}>Далее</button>
-            <button onClick={() => setAuthStep(1)} style={{ width: '100%', padding: '16px', marginTop: '15px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white', fontSize: '16px' }}>Назад</button>
+            <button onClick={() => setAuthStep(1)} style={{ width: '100%', padding: '16px', marginTop: '10px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white' }}>Назад</button>
           </div>
         )}
 
+        {/* Экран 3: Секретные слова */}
         {authStep === 3 && (
           <div>
             <h2 style={{ fontSize: '24px', marginBottom: '10px', fontWeight: 'bold' }}>Секретная фраза</h2>
-            <p style={{ color: '#848e9c', fontSize: '14px', marginBottom: '30px' }}>Придумайте 3 разных слова (каждое > 5 букв).</p>
-            <input type="text" placeholder="Слово 1" value={regData.word1} onChange={e => setRegData({...regData, word1: e.target.value})} style={{ width: '100%', padding: '16px', marginBottom: '15px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
-            <input type="text" placeholder="Слово 2" value={regData.word2} onChange={e => setRegData({...regData, word2: e.target.value})} style={{ width: '100%', padding: '16px', marginBottom: '15px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
-            <input type="text" placeholder="Слово 3" value={regData.word3} onChange={e => setRegData({...regData, word3: e.target.value})} style={{ width: '100%', padding: '16px', marginBottom: '30px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
+            <p style={{ color: '#848e9c', fontSize: '14px', marginBottom: '20px' }}>Придумайте 3 слова (> 5 букв).</p>
+            <input type="text" placeholder="Слово 1" value={regData.word1} onChange={e => setRegData({...regData, word1: e.target.value})} style={{ width: '100%', padding: '14px', marginBottom: '10px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
+            <input type="text" placeholder="Слово 2" value={regData.word2} onChange={e => setRegData({...regData, word2: e.target.value})} style={{ width: '100%', padding: '14px', marginBottom: '10px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
+            <input type="text" placeholder="Слово 3" value={regData.word3} onChange={e => setRegData({...regData, word3: e.target.value})} style={{ width: '100%', padding: '14px', marginBottom: '30px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
             <button onClick={validateWords} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#000000', fontSize: '16px', fontWeight: 'bold' }}>Продолжить</button>
-            <button onClick={() => setAuthStep(2)} style={{ width: '100%', padding: '16px', marginTop: '15px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white', fontSize: '16px' }}>Назад</button>
+            <button onClick={() => setAuthStep(2)} style={{ width: '100%', padding: '16px', marginTop: '10px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white' }}>Назад</button>
           </div>
         )}
 
+        {/* Экран 4: Сохранение слов */}
         {authStep === 4 && (
           <div>
             <h2 style={{ fontSize: '24px', marginBottom: '10px', fontWeight: 'bold' }}>Сохраните фразу</h2>
-            <p style={{ color: '#848e9c', fontSize: '14px', marginBottom: '20px' }}>Эти слова нужны для восстановления.</p>
+            <p style={{ color: '#848e9c', fontSize: '14px', marginBottom: '20px' }}>Запишите эти слова.</p>
             <div style={{ background: '#1e2329', border: '1px solid #FCD535', borderRadius: '12px', padding: '20px', marginBottom: '20px' }}>
               <div style={{ marginBottom: '10px', fontSize: '18px', fontWeight: 'bold' }}>1. {regData.word1}</div>
               <div style={{ marginBottom: '10px', fontSize: '18px', fontWeight: 'bold' }}>2. {regData.word2}</div>
               <div style={{ fontSize: '18px', fontWeight: 'bold' }}>3. {regData.word3}</div>
             </div>
-            <button onClick={copyToClipboard} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #FCD535', background: 'transparent', color: '#FCD535', fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>📋 Скопировать</button>
+            <button onClick={copyToClipboard} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #FCD535', background: 'transparent', color: '#FCD535', fontSize: '16px', fontWeight: 'bold', marginBottom: '10px' }}>📋 Скопировать</button>
             <button onClick={handleFinalRegister} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#000000', fontSize: '16px', fontWeight: 'bold' }}>Завершить</button>
           </div>
         )}
 
+        {/* Экран 5: Вход */}
         {authStep === 5 && (
           <div>
-            <h2 style={{ fontSize: '24px', marginBottom: '30px', fontWeight: 'bold' }}>Вход</h2>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Email</label>
-              <input type="email" placeholder="Ваш email" value={loginData.email} onChange={e => setLoginData({...loginData, email: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px' }} />
+            <h2 style={{ fontSize: '24px', marginBottom: '20px', fontWeight: 'bold' }}>Вход</h2>
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '12px', marginBottom: '5px' }}>Email</label>
+              <input type="email" placeholder="Ваш email" value={loginData.email} onChange={e => setLoginData({...loginData, email: e.target.value})} style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
             </div>
-            <div style={{ marginBottom: '40px' }}>
-              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Пароль</label>
-              <input type="password" placeholder="Ваш пароль" value={loginData.password} onChange={e => setLoginData({...loginData, password: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px' }} />
+            <div style={{ marginBottom: '30px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '12px', marginBottom: '5px' }}>Пароль</label>
+              <input type="password" placeholder="Ваш пароль" value={loginData.password} onChange={e => setLoginData({...loginData, password: e.target.value})} style={{ width: '100%', padding: '14px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
             </div>
-            <button onClick={handleLogin} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#000000', fontSize: '16px', fontWeight: 'bold', marginBottom: '15px' }}>Войти</button>
-            <button onClick={() => setAuthStep(0)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white', fontSize: '16px' }}>Назад</button>
+            <button onClick={handleLogin} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#000000', fontSize: '16px', fontWeight: 'bold', marginBottom: '10px' }}>Войти</button>
+            <button onClick={() => setAuthStep(0)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white' }}>Назад</button>
           </div>
         )}
       </div>
     );
   }
 
-  // ОСНОВНОЕ ПРИЛОЖЕНИЕ
   return (
     <div style={{ minHeight: '100vh', background: '#000000', color: 'white', fontFamily: 'Arial, sans-serif', paddingBottom: '80px' }}>
-      
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, background: '#1e2329', display: 'flex', justifyContent: 'space-around', padding: '15px 0', borderBottom: '1px solid #2b3139', zIndex: 999 }}>
         <button onClick={() => setActiveTab('center')} style={{ background: 'none', border: 'none', color: activeTab === 'center' ? '#FCD535' : '#848e9c', fontWeight: 'bold', fontSize: '15px' }}>Центр</button>
         <button onClick={() => setActiveTab('chat')} style={{ background: 'none', border: 'none', color: activeTab === 'chat' ? '#FCD535' : '#848e9c', fontWeight: 'bold', fontSize: '15px' }}>💬 Чат</button>
@@ -208,7 +246,6 @@ export default function Home() {
       </nav>
 
       <main style={{ paddingTop: '65px', paddingLeft: '15px', paddingRight: '15px' }}>
-        
         {activeTab === 'center' && (
           <div>
              <div style={{ padding: '20px 0', fontSize: '14px', color: '#848e9c' }}>Центр</div>
@@ -238,6 +275,7 @@ export default function Home() {
           </div>
         )}
 
+        {/* ОБНОВЛЕННЫЙ ПРОФИЛЬ С ДАННЫМИ */}
         {activeTab === 'profile' && (
           <div style={{ padding: '20px 0' }}>
             <div style={{ background: '#1e2329', borderRadius: '16px', padding: '30px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', border: '1px solid #2b3139' }}>
@@ -245,7 +283,23 @@ export default function Home() {
                 {user.nickname.charAt(0).toUpperCase()}
               </div>
               <h2 style={{ margin: '0 0 5px 0', fontSize: '24px' }}>{user.nickname}</h2>
-              <div style={{ fontSize: '14px', color: '#848e9c' }}>Опыт: {user.experience}</div>
+              <div style={{ fontSize: '14px', color: '#848e9c', marginBottom: '15px' }}>{user.first_name} {user.last_name}</div>
+              
+              {/* Блок с деталями */}
+              <div style={{ width: '100%', borderTop: '1px solid #2b3139', paddingTop: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                  <span style={{ color: '#848e9c' }}>Email:</span> <span>{user.email}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                  <span style={{ color: '#848e9c' }}>Год рождения:</span> <span>{user.birth_year}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                  <span style={{ color: '#848e9c' }}>Пол:</span> <span>{user.gender}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
+                  <span style={{ color: '#848e9c' }}>Опыт:</span> <span>{user.experience}</span>
+                </div>
+              </div>
             </div>
             <div style={{ background: '#1e2329', borderRadius: '12px', border: '1px solid #2b3139', overflow: 'hidden' }}>
               <div onClick={() => { localStorage.removeItem('asro_user'); setUser(null); setAuthStep(0); }} style={{ padding: '15px 20px', color: '#f6465d', cursor: 'pointer', textAlign: 'center' }}>🚪 Выйти</div>
