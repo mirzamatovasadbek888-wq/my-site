@@ -177,7 +177,7 @@ export default function Home() {
           </div>
         )}
       </main>
-      <nav style={{ position: 'fixed', bottom: '20px', left: '10px', right: '10px', background: '#1e2329', display: 'flex', justifyContent: 'space-around', padding: '12px 0', borderTop: '1px solid #2b3139', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+      <nav style={{ position: 'fixed', bottom: '0px', left: '0', right: '0', background: '#1e2329', display: 'flex', justifyContent: 'space-around', padding: '15px 0 25px 0', borderTop: '1px solid #2b3139', zIndex: 999 }}>
         <button onClick={() => setActiveTab('center')} style={{ background: 'none', border: 'none', color: activeTab === 'center' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>Центр</button>
         <button onClick={() => setActiveTab('chat')} style={{ background: 'none', border: 'none', color: activeTab === 'chat' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>💬 Чат</button>
         <button onClick={() => setActiveTab('profile')} style={{ background: 'none', border: 'none', color: activeTab === 'profile' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>👤 Профиль</button>
