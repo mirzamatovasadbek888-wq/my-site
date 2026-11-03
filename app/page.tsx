@@ -79,34 +79,56 @@ export default function Home() {
 
   if (!isLoaded) return <div style={{ background: '#0b0e11', minHeight: '100vh' }}></div>;
 
+  // СТРОГИЕ ЭКРАНЫ РЕГИСТРАЦИИ
   if (!user) {
     return (
-      <div style={{ minHeight: '100vh', background: '#0b0e11', color: 'white', fontFamily: 'Arial, sans-serif', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '20px' }}>
+      <div style={{ minHeight: '100vh', background: '#0b0e11', color: 'white', fontFamily: 'Arial, sans-serif', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '30px' }}>
+        
+        {/* Экран 0: Приветствие */}
         {authStep === 0 && (
-          <div style={{ textAlign: 'center' }}>
-            <img src="/logo.svg" alt="ASRO" style={{ height: '60px', marginBottom: '40px' }} />
-            <h1 style={{ fontSize: '28px', marginBottom: '10px' }}>Добро пожаловать</h1>
-            <p style={{ color: '#848e9c', marginBottom: '40px' }}>Платформа для трейдеров</p>
-            <button onClick={() => setAuthStep(1)} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: 'none', background: '#0ecb81', color: 'white', fontSize: '18px', fontWeight: 'bold' }}>Регистрация</button>
+          <div style={{ textAlign: 'left' }}>
+            <img src="/logo.svg" alt="ASRO" style={{ height: '40px', marginBottom: '60px' }} />
+            <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '15px', lineHeight: '1.2' }}>Добро пожаловать в ASRO</h1>
+            <p style={{ color: '#848e9c', marginBottom: '50px', fontSize: '16px', lineHeight: '1.5' }}>Профессиональная платформа для трейдеров и инвесторов.</p>
+            <button onClick={() => setAuthStep(1)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#0b0e11', fontSize: '16px', fontWeight: 'bold' }}>Создать аккаунт</button>
           </div>
         )}
+
+        {/* Экран 1: Ник, Возраст, Опыт */}
         {authStep === 1 && (
           <div>
-            <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>Шаг 1: О тебе</h2>
-            <input type="text" placeholder="Твой ник" value={regData.nickname} onChange={e => setRegData({...regData, nickname: e.target.value})} style={{ width: '100%', padding: '15px', marginBottom: '15px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
-            <input type="number" placeholder="Сколько тебе лет?" value={regData.age} onChange={e => setRegData({...regData, age: e.target.value})} style={{ width: '100%', padding: '15px', marginBottom: '15px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
-            <input type="text" placeholder="Сколько лет на рынке?" value={regData.experience} onChange={e => setRegData({...regData, experience: e.target.value})} style={{ width: '100%', padding: '15px', marginBottom: '30px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
-            <button onClick={() => setAuthStep(2)} style={{ width: '100%', padding: '15px', borderRadius: '12px', border: 'none', background: '#0ecb81', color: 'white', fontSize: '18px', fontWeight: 'bold' }}>Далее</button>
+            <h2 style={{ fontSize: '24px', marginBottom: '30px', fontWeight: 'bold' }}>Создание профиля</h2>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Никнейм</label>
+              <input type="text" placeholder="Введите ник" value={regData.nickname} onChange={e => setRegData({...regData, nickname: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px', outline: 'none' }} />
+            </div>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Возраст</label>
+              <input type="number" placeholder="Ваш возраст" value={regData.age} onChange={e => setRegData({...regData, age: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px', outline: 'none' }} />
+            </div>
+            <div style={{ marginBottom: '40px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Опыт на рынке (в годах)</label>
+              <input type="text" placeholder="Например: 3" value={regData.experience} onChange={e => setRegData({...regData, experience: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px', outline: 'none' }} />
+            </div>
+            <button onClick={() => setAuthStep(2)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#0b0e11', fontSize: '16px', fontWeight: 'bold' }}>Продолжить</button>
           </div>
         )}
+
+        {/* Экран 2: Пароль и Почта */}
         {authStep === 2 && (
           <div>
-            <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>Шаг 2: Безопасность</h2>
-            <input type="password" placeholder="Придумай пароль" value={regData.password} onChange={e => setRegData({...regData, password: e.target.value})} style={{ width: '100%', padding: '15px', marginBottom: '15px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
-            <input type="email" placeholder="Email (необязательно)" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} style={{ width: '100%', padding: '15px', marginBottom: '30px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white' }} />
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => setAuthStep(1)} style={{ flex: 1, padding: '15px', borderRadius: '12px', border: '1px solid #848e9c', background: 'transparent', color: 'white' }}>Назад</button>
-              <button onClick={handleRegister} style={{ flex: 2, padding: '15px', borderRadius: '12px', border: 'none', background: '#0ecb81', color: 'white', fontSize: '18px', fontWeight: 'bold' }}>Создать профиль</button>
+            <h2 style={{ fontSize: '24px', marginBottom: '30px', fontWeight: 'bold' }}>Безопасность</h2>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Пароль</label>
+              <input type="password" placeholder="Придумайте пароль" value={regData.password} onChange={e => setRegData({...regData, password: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px', outline: 'none' }} />
+            </div>
+            <div style={{ marginBottom: '40px' }}>
+              <label style={{ display: 'block', color: '#848e9c', fontSize: '14px', marginBottom: '8px' }}>Email (необязательно)</label>
+              <input type="email" placeholder="example@mail.com" value={regData.email} onChange={e => setRegData({...regData, email: e.target.value})} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: '#1e2329', color: 'white', fontSize: '16px', outline: 'none' }} />
+            </div>
+            <div style={{ display: 'flex', gap: '15px' }}>
+              <button onClick={() => setAuthStep(1)} style={{ flex: 1, padding: '16px', borderRadius: '8px', border: '1px solid #848e9c', background: 'transparent', color: 'white', fontSize: '16px', fontWeight: 'bold' }}>Назад</button>
+              <button onClick={handleRegister} style={{ flex: 2, padding: '16px', borderRadius: '8px', border: 'none', background: '#FCD535', color: '#0b0e11', fontSize: '16px', fontWeight: 'bold' }}>Зарегистрироваться</button>
             </div>
           </div>
         )}
@@ -117,14 +139,13 @@ export default function Home() {
   return (
     <div style={{ minHeight: '100vh', background: '#0b0e11', color: 'white', fontFamily: 'Arial, sans-serif', paddingBottom: '80px' }}>
       
-      {/* ВЕРХНЕЕ МЕНЮ (вместо шапки с логотипом) */}
+      {/* ВЕРХНЕЕ МЕНЮ */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, background: '#1e2329', display: 'flex', justifyContent: 'space-around', padding: '15px 0', borderBottom: '1px solid #2b3139', zIndex: 999 }}>
         <button onClick={() => setActiveTab('center')} style={{ background: 'none', border: 'none', color: activeTab === 'center' ? '#FCD535' : '#848e9c', fontWeight: 'bold', fontSize: '15px' }}>Центр</button>
         <button onClick={() => setActiveTab('chat')} style={{ background: 'none', border: 'none', color: activeTab === 'chat' ? '#FCD535' : '#848e9c', fontWeight: 'bold', fontSize: '15px' }}>💬 Чат</button>
         <button onClick={() => setActiveTab('profile')} style={{ background: 'none', border: 'none', color: activeTab === 'profile' ? '#FCD535' : '#848e9c', fontWeight: 'bold', fontSize: '15px' }}>👤 Профиль</button>
       </nav>
 
-      {/* ОСНОВНОЙ КОНТЕНТ (с отступом сверху, чтобы не залезал под меню) */}
       <main style={{ paddingTop: '65px' }}>
         {activeTab === 'center' && (
           <div>
