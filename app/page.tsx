@@ -115,11 +115,17 @@ export default function Home() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0b0e11', color: 'white', fontFamily: 'Arial, sans-serif', paddingBottom: '100px' }}>
-      <header style={{ padding: '15px 20px', background: '#1e2329', display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #2b3139' }}>
-        <img src="/logo.svg" alt="ASRO Logo" style={{ height: '40px', width: 'auto' }} />
-      </header>
-      <main>
+    <div style={{ minHeight: '100vh', background: '#0b0e11', color: 'white', fontFamily: 'Arial, sans-serif', paddingBottom: '80px' }}>
+      
+      {/* ВЕРХНЕЕ МЕНЮ (вместо шапки с логотипом) */}
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, background: '#1e2329', display: 'flex', justifyContent: 'space-around', padding: '15px 0', borderBottom: '1px solid #2b3139', zIndex: 999 }}>
+        <button onClick={() => setActiveTab('center')} style={{ background: 'none', border: 'none', color: activeTab === 'center' ? '#FCD535' : '#848e9c', fontWeight: 'bold', fontSize: '15px' }}>Центр</button>
+        <button onClick={() => setActiveTab('chat')} style={{ background: 'none', border: 'none', color: activeTab === 'chat' ? '#FCD535' : '#848e9c', fontWeight: 'bold', fontSize: '15px' }}>💬 Чат</button>
+        <button onClick={() => setActiveTab('profile')} style={{ background: 'none', border: 'none', color: activeTab === 'profile' ? '#FCD535' : '#848e9c', fontWeight: 'bold', fontSize: '15px' }}>👤 Профиль</button>
+      </nav>
+
+      {/* ОСНОВНОЙ КОНТЕНТ (с отступом сверху, чтобы не залезал под меню) */}
+      <main style={{ paddingTop: '65px' }}>
         {activeTab === 'center' && (
           <div>
              <div style={{ padding: '20px', fontSize: '14px', color: '#848e9c' }}>Центр (Скоро здесь будет всё)</div>
@@ -162,13 +168,11 @@ export default function Home() {
           </div>
         )}
       </main>
-      
-      {/* МЕНЮ С ОТСТУПОМ СНИЗУ (чтобы не перекрывалось) */}
-      <nav style={{ position: 'fixed', bottom: '0px', left: '0', right: '0', background: '#1e2329', display: 'flex', justifyContent: 'space-around', padding: '15px 0 40px 0', borderTop: '1px solid #2b3139', zIndex: 999 }}>
-        <button onClick={() => setActiveTab('center')} style={{ background: 'none', border: 'none', color: activeTab === 'center' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>Центр</button>
-        <button onClick={() => setActiveTab('chat')} style={{ background: 'none', border: 'none', color: activeTab === 'chat' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>💬 Чат</button>
-        <button onClick={() => setActiveTab('profile')} style={{ background: 'none', border: 'none', color: activeTab === 'profile' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>👤 Профиль</button>
-      </nav>
+
+      {/* НИЖНЯЯ ПАНЕЛЬ С ЛОГОТИПОМ */}
+      <footer style={{ position: 'fixed', bottom: 0, left: 0, right: 0, background: '#1e2329', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 0', borderTop: '1px solid #2b3139', height: '60px' }}>
+        <img src="/logo.svg" alt="ASRO Logo" style={{ height: '30px', width: 'auto' }} />
+      </footer>
     </div>
   );
 }
