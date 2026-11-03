@@ -1,61 +1,94 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
-const COINS = [
-  { id: 'bitcoin', symbol: 'BTC' },
-  { id: 'ethereum', symbol: 'ETH' },
-  { id: 'solana', symbol: 'SOL' },
-  { id: 'binancecoin', symbol: 'BNB' },
-  { id: 'ripple', symbol: 'XRP' },
-  { id: 'cardano', symbol: 'ADA' },
-];
+import { supabase } from '../lib/supabase';
 
 export default function Home() {
-  const [prices, setPrices] = useState<any>({});
+  const [messages, setMessages] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [username, setUsername] = useState('');
+  const [status, setStatus] = useState('Бронза');
 
+  // Загрузка сообщений
   useEffect(() => {
-    const fetchPrices = async () => {
-      try {
-        const ids = COINS.map(c => c.id).join(',');
-        const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
-        const data = await res.json();
-        setPrices(data);
-      } catch (e) {
-        console.error('Ошибка загрузки цен', e);
-      }
+    const fetchMessages = async () => {
+      const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: true });
+      if (data) setMessages(data);
     };
+    fetchMessages();
 
-    fetchPrices();
-    const interval = setInterval(fetchPrices, 30000);
-    return () => clearInterval(interval);
+    // Подписка на новые сообщения в реальном времени
+    const subscription = supabase
+      .channel('messages_channel')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+        setMessages(prev => [...prev, payload.new]);
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(subscription); };
   }, []);
+
+  // Отправка сообщения
+  const sendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !username.trim()) return;
+
+    await supabase.from('messages').insert([{ 
+      username: username, 
+      content: newMessage,
+      status: status 
+    }]);
+    setNewMessage('');
+  };
 
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', background: '#0f172a', minHeight: '100vh', color: 'white' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>📊 Рынок</h1>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-        {COINS.map((coin) => {
-          const price = prices[coin.id]?.usd;
-          const change = prices[coin.id]?.usd_24h_change;
-          return (
-            <div key={coin.id} style={{ background: '#1e293b', padding: '15px', borderRadius: '12px', textAlign: 'center' }}>
-              <h2 style={{ margin: 0, fontSize: '18px' }}>{coin.symbol}</h2>
-              <p style={{ fontSize: '22px', fontWeight: 'bold', margin: '10px 0' }}>
-                ${price ? price.toLocaleString() : '...'}
-              </p>
-              {change && (
-                <p style={{ color: change >= 0 ? '#4ade80' : '#f87171', margin: 0 }}>
-                  {change >= 0 ? '▲' : '▼'} {Math.abs(change).toFixed(2)}%
-                </p>
-              )}
-            </div>
-          );
-        })}
+      <h1 style={{ textAlign: 'center', marginBottom: '20px' }}>💬 Чат Трейдеров</h1>
+      
+      <div style={{ background: '#1e293b', borderRadius: '12px', padding: '15px', height: '50vh', overflowY: 'auto', marginBottom: '20px' }}>
+        {messages.length === 0 && <p style={{ textAlign: 'center', color: '#94a3b8' }}>Пока сообщений нет...</p>}
+        {messages.map((msg, i) => (
+          <div key={i} style={{ marginBottom: '10px', padding: '10px', background: '#334155', borderRadius: '8px' }}>
+            <span style={{ fontWeight: 'bold', color: '#4ade80' }}>{msg.username}</span>
+            <span style={{ fontSize: '12px', color: '#cbd5e1', marginLeft: '10px' }}>[{msg.status}]</span>
+            <p style={{ margin: '5px 0 0 0' }}>{msg.content}</p>
+          </div>
+        ))}
       </div>
-      <p style={{ textAlign: 'center', marginTop: '40px', color: '#94a3b8', fontSize: '14px' }}>
-        Данные обновляются каждые 30 секунд
-      </p>
+
+      <form onSubmit={sendMessage} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <input 
+            type="text" 
+            placeholder="Твой ник" 
+            value={username} 
+            onChange={e => setUsername(e.target.value)}
+            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: '#1e293b', color: 'white' }}
+          />
+          <select 
+            value={status} 
+            onChange={e => setStatus(e.target.value)}
+            style={{ padding: '10px', borderRadius: '8px', border: 'none', background: '#1e293b', color: 'white' }}
+          >
+            <option>Бронза</option>
+            <option>Серебро</option>
+            <option>Золото</option>
+            <option>Алмаз</option>
+          </select>
+        </div>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <input 
+            type="text" 
+            placeholder="Написать сообщение..." 
+            value={newMessage} 
+            onChange={e => setNewMessage(e.target.value)}
+            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: '#1e293b', color: 'white' }}
+          />
+          <button type="submit" style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#4ade80', color: '#0f172a', fontWeight: 'bold' }}>
+            Отправить
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
