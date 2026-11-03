@@ -33,19 +33,16 @@ export default function Home() {
   return (
     <div style={{ minHeight: '100vh', background: '#0b0e11', color: 'white', fontFamily: 'Arial, sans-serif' }}>
       
-      {/* ШАПКА С ЛОГОТИПОМ-БАБОЧКОЙ */}
+      {/* ШАПКА С ЛОГОТИПОМ-КАРТИНКОЙ */}
       <header style={{ 
         padding: '15px 20px', 
         background: '#1e2329', 
         display: 'flex', 
         alignItems: 'center', 
-        gap: '10px', 
+        justifyContent: 'center',
         borderBottom: '1px solid #2b3139'
       }}>
-        <img src="/logo.svg" alt="ASRO Logo" style={{ height: "45px", width: "auto" }} />
-        <h1 style={{ margin: 0, fontSize: '22px', fontWeight: '800', letterSpacing: '1px', color: '#FCD535' }}>
-          ASRO-T
-        </h1>
+        <img src="/logo.svg" alt="ASRO" style={{ height: '45px', width: 'auto' }} />
       </header>
 
       {/* СПИСОК МОНЕТ */}
@@ -71,7 +68,7 @@ export default function Home() {
                 <div style={{ 
                   width: '32px', height: '32px', borderRadius: '50%', 
                   background: coin.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '14px', fontWeight: 'bold', color: 'white'
+                  fontSize: '12px', fontWeight: 'bold', color: 'white'
                 }}>
                   {coin.symbol}
                 </div>
