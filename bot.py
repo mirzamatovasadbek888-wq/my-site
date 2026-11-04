@@ -618,7 +618,7 @@ def main():
                 elif cmd == "/asro":
                     send(chat, asro_text())
     elif cmd == "/scalping":
-        send(chat, scalping_text())
+        send(chat, "Скальпинг в разработке!")
     elif cmd == "/stat":
                     send(chat, stat_text())
                 elif cmd == "/backtest":
@@ -672,7 +672,6 @@ def fast_fvg_check(symbol, interval):
     except:
         return []
 
-def scalping_text():
     btc_5 = fast_fvg_check("BTCUSDT", "5m")
     btc_15 = fast_fvg_check("BTCUSDT", "15m")
     res = "⚡️ **SCALPING (5m и 15m)**\n\n"
