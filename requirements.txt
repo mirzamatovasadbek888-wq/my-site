@@ -4,3 +4,7 @@ pandas
 yfinance
 flask
 flask
+flask
+yfinance
+pandas
+requests
