@@ -37,20 +37,17 @@ export default function Home() {
     setIsLoaded(true);
   }, []);
 
-  // Загрузка цен и объемов
   useEffect(() => {
     if (activeTab !== 'center') return;
     const fetchPrices = async () => {
       const ids = COINS.map(c => c.id).join(',');
-      // Добавили include_24hr_vol=true чтобы показывать объем
-      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true`);
+      const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
       const data = await res.json();
       setPrices(data);
     };
     fetchPrices();
   }, [activeTab]);
 
-  // Загрузка чата
   useEffect(() => {
     if (activeTab !== 'chat' || !user) return;
     const fetchMessages = async () => {
@@ -64,11 +61,10 @@ export default function Home() {
     return () => { supabase.removeChannel(sub); };
   }, [activeTab, user]);
 
-  // Загрузка сигналов для Центра
   useEffect(() => {
-    if (activeTab !== 'center') return;
+    if (activeTab !== 'signals') return;
     const fetchSignals = async () => {
-      const { data } = await supabase.from('signals').select('*').order('created_at', { ascending: false }).limit(10); // Показываем последние 10
+      const { data } = await supabase.from('signals').select('*').order('created_at', { ascending: false });
       if (data) setSignals(data);
     };
     fetchSignals();
@@ -95,7 +91,6 @@ export default function Home() {
       description: newSignal.desc
     }]);
     
-    // Обновляем список сигналов на главной
     const { data } = await supabase.from('signals').select('*').order('created_at', { ascending: false });
     if (data) setSignals(data);
     
@@ -143,7 +138,7 @@ export default function Home() {
 
   if (!isLoaded) return <div style={{ background: '#0b0e11', minHeight: '100vh' }}></div>;
 
-  // ЭКРАНЫ РЕГИСТРАЦИИ (сокращены для читаемости, логика та же)
+  // ЭКРАНЫ РЕГИСТРАЦИИ
   if (!user) {
     return (
       <div style={{ minHeight: '100vh', background: '#0b0e11', color: 'white', fontFamily: 'Arial, sans-serif', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '30px' }}>
@@ -156,11 +151,11 @@ export default function Home() {
             <button onClick={() => setAuthStep(5)} style={{ width: '100%', padding: '16px', borderRadius: '8px', border: '1px solid #2b3139', background: 'transparent', color: 'white', fontSize: '16px', fontWeight: 'bold' }}>Войти</button>
           </div>
         )}
-        {authStep === 1 && ( <div><input type="text" placeholder="Имя" value={regData.first_name} onChange={e => setRegData({...regData, first_name: e.target.value})} style={{ width: '100%', padding: '14px', marginBottom: '10px', background: '#1e2329', color: 'white' }} /><button onClick={() => setAuthStep(2)}>Далее</button></div> )}
-        {authStep === 2 && ( <div><input type="text" placeholder="Опыт" value={regData.experience} onChange={e => setRegData({...regData, experience: e.target.value})} style={{ width: '100%', padding: '14px', marginBottom: '10px', background: '#1e2329', color: 'white' }} /><button onClick={() => setAuthStep(3)}>Далее</button></div> )}
-        {authStep === 3 && ( <div><input type="text" placeholder="Слово 1" value={regData.word1} onChange={e => setRegData({...regData, word1: e.target.value})} style={{ width: '100%', padding: '14px', marginBottom: '10px', background: '#1e2329', color: 'white' }} /><button onClick={validateWords}>Далее</button></div> )}
-        {authStep === 4 && ( <div><button onClick={handleFinalRegister}>Завершить</button></div> )}
-        {authStep === 5 && ( <div><input type="email" placeholder="Email" value={loginData.email} onChange={e => setLoginData({...loginData, email: e.target.value})} style={{ width: '100%', padding: '14px', marginBottom: '10px', background: '#1e2329', color: 'white' }} /><button onClick={handleLogin}>Войти</button></div> )}
+        {authStep === 1 && ( <div><input type="text" placeholder="Имя" value={regData.first_name} onChange={e => setRegData({...regData, first_name: e.target.value})} style={{ width: '100%', padding: '14px', marginBottom: '10px', background: '#1e2329', color: 'white' }} /><button onClick={() => setAuthStep(2)} style={{ width: '100%', padding: '16px', background: '#A855F7', color: 'white', borderRadius: '8px' }}>Далее</button></div> )}
+        {authStep === 2 && ( <div><input type="text" placeholder="Опыт" value={regData.experience} onChange={e => setRegData({...regData, experience: e.target.value})} style={{ width: '100%', padding: '14px', marginBottom: '10px', background: '#1e2329', color: 'white' }} /><button onClick={() => setAuthStep(3)} style={{ width: '100%', padding: '16px', background: '#A855F7', color: 'white', borderRadius: '8px' }}>Далее</button></div> )}
+        {authStep === 3 && ( <div><input type="text" placeholder="Слово 1" value={regData.word1} onChange={e => setRegData({...regData, word1: e.target.value})} style={{ width: '100%', padding: '14px', marginBottom: '10px', background: '#1e2329', color: 'white' }} /><button onClick={validateWords} style={{ width: '100%', padding: '16px', background: '#A855F7', color: 'white', borderRadius: '8px' }}>Далее</button></div> )}
+        {authStep === 4 && ( <div><button onClick={handleFinalRegister} style={{ width: '100%', padding: '16px', background: '#A855F7', color: 'white', borderRadius: '8px' }}>Завершить</button></div> )}
+        {authStep === 5 && ( <div><input type="email" placeholder="Email" value={loginData.email} onChange={e => setLoginData({...loginData, email: e.target.value})} style={{ width: '100%', padding: '14px', marginBottom: '10px', background: '#1e2329', color: 'white' }} /><button onClick={handleLogin} style={{ width: '100%', padding: '16px', background: '#A855F7', color: 'white', borderRadius: '8px' }}>Войти</button></div> )}
       </div>
     );
   }
@@ -185,17 +180,43 @@ export default function Home() {
 
       <main style={{ paddingTop: '90px', paddingLeft: '20px', paddingRight: '20px' }}>
         
-        {/* ГЛАВНЫЙ ЭКРАН (РЫНОК + СИГНАЛЫ) */}
+        {/* ГЛАВНЫЙ ЭКРАН (ЦЕНТР) */}
         {activeTab === 'center' && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
-            
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div>
               <h1 style={{ fontSize: '28px', fontWeight: 'bold', margin: 0 }}>Привет, {user.first_name || user.nickname}!</h1>
               <p style={{ color: '#848e9c', margin: '5px 0 0 0', fontSize: '15px' }}>Добро пожаловать на ASRO</p>
             </div>
 
-            {/* ОБЗОР РЫНКА С ОБЪЕМАМИ */}
-            <div style={{ background: '#13161b', borderRadius: '16px', border: '1px solid #1e2329', overflow: 'hidden' }}>
+            {/* Сетка кнопок (Квадраты) */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div onClick={() => setActiveTab('chat')} style={{ background: '#13161b', padding: '20px 15px', borderRadius: '16px', border: '1px solid #1e2329', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <div style={{ fontWeight: 'bold', fontSize: '15px', flex: 1 }}>Чат</div>
+                <div style={{ color: '#848e9c', fontSize: '18px' }}>›</div>
+              </div>
+              
+              <div onClick={() => alert('Обучение в разработке')} style={{ background: '#13161b', padding: '20px 15px', borderRadius: '16px', border: '1px solid #1e2329', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                <div style={{ fontWeight: 'bold', fontSize: '15px', flex: 1 }}>Обучение</div>
+                <div style={{ color: '#848e9c', fontSize: '18px' }}>›</div>
+              </div>
+
+              <div onClick={() => setActiveTab('signals')} style={{ background: '#13161b', padding: '20px 15px', borderRadius: '16px', border: '1px solid #1e2329', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="2"><path d="M12 20V10"></path><path d="M18 20V4"></path><path d="M6 20v-4"></path></svg>
+                <div style={{ fontWeight: 'bold', fontSize: '15px', flex: 1 }}>Сигналы</div>
+                <div style={{ color: '#848e9c', fontSize: '18px' }}>›</div>
+              </div>
+
+              <div onClick={() => setActiveTab('profile')} style={{ background: '#13161b', padding: '20px 15px', borderRadius: '16px', border: '1px solid #1e2329', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <div style={{ fontWeight: 'bold', fontSize: '15px', flex: 1 }}>Профиль</div>
+                <div style={{ color: '#848e9c', fontSize: '18px' }}>›</div>
+              </div>
+            </div>
+
+            {/* Обзор рынка (без объема) */}
+            <div style={{ background: '#13161b', borderRadius: '16px', border: '1px solid #1e2329', overflow: 'hidden', marginTop: '10px' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px', borderBottom: '1px solid #1e2329' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold', fontSize: '16px' }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
@@ -203,87 +224,76 @@ export default function Home() {
                 </div>
               </div>
               
-              {/* Заголовки таблицы */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 20px', fontSize: '12px', color: '#848e9c', borderBottom: '1px solid #1e2329' }}>
-                <span>Монета</span>
-                <span>Цена / Объем 24ч</span>
-              </div>
-
               {COINS.map((coin) => (
-                <div key={coin.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 20px', borderBottom: '1px solid #1e2329' }}>
+                <div key={coin.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '18px 20px', borderBottom: '1px solid #1e2329' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: coin.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 'bold', color: 'white' }}>{coin.icon}</div>
-                    <div>
-                      <div style={{ fontWeight: 'bold', fontSize: '15px' }}>{coin.symbol}</div>
-                      <div style={{ fontSize: '12px', color: '#848e9c' }}>{coin.name}</div>
-                    </div>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: coin.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold', color: 'white' }}>{coin.icon}</div>
+                    <div><div style={{ fontWeight: 'bold', fontSize: '16px' }}>{coin.symbol}</div><div style={{ fontSize: '13px', color: '#848e9c' }}>{coin.name}</div></div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontWeight: 'bold', fontSize: '15px' }}>${prices[coin.id]?.usd ? prices[coin.id].usd.toLocaleString() : '...'}</div>
-                    <div style={{ fontSize: '11px', color: '#848e9c' }}>
-                      Vol: ${prices[coin.id]?.usd_24h_vol ? (prices[coin.id].usd_24h_vol / 1000000).toFixed(1) + 'M' : '...'}
-                    </div>
+                    <div style={{ fontWeight: 'bold', fontSize: '16px' }}>${prices[coin.id]?.usd ? prices[coin.id].usd.toLocaleString() : '...'}</div>
+                    <div style={{ fontSize: '14px', color: prices[coin.id]?.usd_24h_change >= 0 ? '#0ecb81' : '#f6465d' }}>{prices[coin.id]?.usd_24h_change >= 0 ? '+' : ''}{prices[coin.id]?.usd_24h_change ? prices[coin.id].usd_24h_change.toFixed(2) : '0.00'}%</div>
                   </div>
                 </div>
               ))}
             </div>
-
-            {/* СИГНАЛЫ ICT / SMC */}
-            <div style={{ marginTop: '10px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                <h2 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0 }}>Сигналы ICT / SMC</h2>
-                <button onClick={() => setShowSignalForm(!showSignalForm)} style={{ background: 'none', color: '#A855F7', border: '1px solid #A855F7', padding: '8px 12px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}>
-                  {showSignalForm ? 'Отмена' : '+ Создать'}
-                </button>
-              </div>
-
-              {/* Форма сигнала */}
-              {showSignalForm && (
-                <form onSubmit={postSignal} style={{ background: '#13161b', padding: '20px', borderRadius: '16px', border: '1px solid #1e2329', marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-                    <input type="text" placeholder="Монета (BTC)" value={newSignal.coin} onChange={e => setNewSignal({...newSignal, coin: e.target.value})} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #2b3139', background: '#0b0e11', color: 'white' }} />
-                    <select value={newSignal.action} onChange={e => setNewSignal({...newSignal, action: e.target.value})} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #2b3139', background: '#0b0e11', color: 'white' }}>
-                      <option value="BUY">BUY</option>
-                      <option value="SELL">SELL</option>
-                    </select>
-                  </div>
-                  <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-                    <input type="text" placeholder="Вход" value={newSignal.entry} onChange={e => setNewSignal({...newSignal, entry: e.target.value})} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #2b3139', background: '#0b0e11', color: 'white' }} />
-                    <input type="text" placeholder="Тейк" value={newSignal.target} onChange={e => setNewSignal({...newSignal, target: e.target.value})} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #2b3139', background: '#0b0e11', color: 'white' }} />
-                    <input type="text" placeholder="Стоп" value={newSignal.stop} onChange={e => setNewSignal({...newSignal, stop: e.target.value})} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #2b3139', background: '#0b0e11', color: 'white' }} />
-                  </div>
-                  <textarea placeholder="Анализ (ICT/SMC)..." value={newSignal.desc} onChange={e => setNewSignal({...newSignal, desc: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #2b3139', background: '#0b0e11', color: 'white', marginBottom: '15px', minHeight: '60px' }} />
-                  <button type="submit" style={{ width: '100%', background: '#A855F7', color: 'white', border: 'none', padding: '14px', borderRadius: '8px', fontWeight: 'bold' }}>Опубликовать</button>
-                </form>
-              )}
-
-              {/* Лента сигналов */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                {signals.length === 0 ? <p style={{ textAlign: 'center', color: '#848e9c', fontSize: '14px' }}>Пока нет сигналов.</p> : null}
-                {signals.map((sig, i) => (
-                  <div key={i} style={{ background: '#13161b', padding: '15px', borderRadius: '12px', border: '1px solid #1e2329' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '16px', fontWeight: 'bold' }}>{sig.coin}</span>
-                        <span style={{ background: sig.action === 'BUY' ? 'rgba(14,203,129,0.2)' : 'rgba(246,70,93,0.2)', color: sig.action === 'BUY' ? '#0ecb81' : '#f6465d', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>{sig.action}</span>
-                      </div>
-                      <div style={{ color: '#848e9c', fontSize: '12px' }}>@{sig.author}</div>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', background: '#0b0e11', padding: '10px', borderRadius: '8px', marginBottom: '10px', fontSize: '12px' }}>
-                      <div><span style={{ color: '#848e9c' }}>Вход:</span> {sig.entry_price}</div>
-                      <div><span style={{ color: '#848e9c' }}>Тейк:</span> {sig.target_price}</div>
-                      <div><span style={{ color: '#848e9c' }}>Стоп:</span> {sig.stop_loss}</div>
-                    </div>
-                    {sig.description && <p style={{ margin: 0, fontSize: '13px', color: '#cbd5e1', lineHeight: '1.4' }}>{sig.description}</p>}
-                  </div>
-                ))}
-              </div>
-            </div>
-
           </div>
         )}
 
-        {/* ЧАТ И ПРОФИЛЬ ОСТАЮТСЯ БЕЗ ИЗМЕНЕНИЙ */}
+        {/* РАЗДЕЛ СИГНАЛЫ */}
+        {activeTab === 'signals' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Сигналы трейдеров</h1>
+              <button onClick={() => setShowSignalForm(!showSignalForm)} style={{ background: '#A855F7', color: 'white', border: 'none', padding: '10px 15px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' }}>
+                {showSignalForm ? 'Отмена' : '+ Создать'}
+              </button>
+            </div>
+
+            {/* Форма создания сигнала */}
+            {showSignalForm && (
+              <form onSubmit={postSignal} style={{ background: '#13161b', padding: '20px', borderRadius: '16px', border: '1px solid #1e2329', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+                  <input type="text" placeholder="Монета (BTC)" value={newSignal.coin} onChange={e => setNewSignal({...newSignal, coin: e.target.value})} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #2b3139', background: '#0b0e11', color: 'white' }} />
+                  <select value={newSignal.action} onChange={e => setNewSignal({...newSignal, action: e.target.value})} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #2b3139', background: '#0b0e11', color: 'white' }}>
+                    <option value="BUY">BUY</option>
+                    <option value="SELL">SELL</option>
+                  </select>
+                </div>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+                  <input type="text" placeholder="Вход" value={newSignal.entry} onChange={e => setNewSignal({...newSignal, entry: e.target.value})} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #2b3139', background: '#0b0e11', color: 'white' }} />
+                  <input type="text" placeholder="Тейк" value={newSignal.target} onChange={e => setNewSignal({...newSignal, target: e.target.value})} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #2b3139', background: '#0b0e11', color: 'white' }} />
+                  <input type="text" placeholder="Стоп" value={newSignal.stop} onChange={e => setNewSignal({...newSignal, stop: e.target.value})} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #2b3139', background: '#0b0e11', color: 'white' }} />
+                </div>
+                <textarea placeholder="Анализ (ICT/SMC)..." value={newSignal.desc} onChange={e => setNewSignal({...newSignal, desc: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #2b3139', background: '#0b0e11', color: 'white', marginBottom: '15px', minHeight: '60px' }} />
+                <button type="submit" style={{ width: '100%', background: '#A855F7', color: 'white', border: 'none', padding: '14px', borderRadius: '8px', fontWeight: 'bold' }}>Опубликовать</button>
+              </form>
+            )}
+
+            {/* Лента сигналов */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              {signals.length === 0 ? <p style={{ textAlign: 'center', color: '#848e9c', fontSize: '14px' }}>Пока нет сигналов.</p> : null}
+              {signals.map((sig, i) => (
+                <div key={i} style={{ background: '#13161b', padding: '15px', borderRadius: '12px', border: '1px solid #1e2329' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '16px', fontWeight: 'bold' }}>{sig.coin}</span>
+                      <span style={{ background: sig.action === 'BUY' ? 'rgba(14,203,129,0.2)' : 'rgba(246,70,93,0.2)', color: sig.action === 'BUY' ? '#0ecb81' : '#f6465d', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}>{sig.action}</span>
+                    </div>
+                    <div style={{ color: '#848e9c', fontSize: '12px' }}>@{sig.author}</div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', background: '#0b0e11', padding: '10px', borderRadius: '8px', marginBottom: '10px', fontSize: '12px' }}>
+                    <div><span style={{ color: '#848e9c' }}>Вход:</span> {sig.entry_price}</div>
+                    <div><span style={{ color: '#848e9c' }}>Тейк:</span> {sig.target_price}</div>
+                    <div><span style={{ color: '#848e9c' }}>Стоп:</span> {sig.stop_loss}</div>
+                  </div>
+                  {sig.description && <p style={{ margin: 0, fontSize: '13px', color: '#cbd5e1', lineHeight: '1.4' }}>{sig.description}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {activeTab === 'chat' && (
           <div>
             <div style={{ background: '#13161b', borderRadius: '12px', padding: '15px', height: '60vh', overflowY: 'auto', marginBottom: '15px' }}>
