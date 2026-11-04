@@ -22,7 +22,7 @@ export default function Home() {
   });
   const [loginData, setLoginData] = useState({ email: '', password: '' });
 
-  const [activeTab, setActiveTab] = useState('profile'); 
+  const [activeTab, setActiveTab] = useState('center'); 
   const [prices, setPrices] = useState<any>({});
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -189,21 +189,81 @@ export default function Home() {
 
   return (
     <div style={{ minHeight: '100vh', background: '#000000', color: 'white', fontFamily: 'Arial, sans-serif', paddingBottom: '80px' }}>
-      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, background: '#1e2329', display: 'flex', justifyContent: 'space-around', padding: '15px 0', borderBottom: '1px solid #2b3139', zIndex: 999 }}>
-        <button onClick={() => setActiveTab('center')} style={{ background: 'none', border: 'none', color: activeTab === 'center' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>Центр</button>
-        <button onClick={() => setActiveTab('chat')} style={{ background: 'none', border: 'none', color: activeTab === 'chat' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>💬 Чат</button>
-        <button onClick={() => setActiveTab('profile')} style={{ background: 'none', border: 'none', color: activeTab === 'profile' ? '#FCD535' : '#848e9c', fontWeight: 'bold' }}>👤 Профиль</button>
+      
+      {/* ВЕРХНЕЕ МЕНЮ С ЧИСТЫМИ ИКОНКАМИ */}
+      <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, background: '#1e2329', display: 'flex', justifyContent: 'space-around', padding: '12px 0', borderBottom: '1px solid #2b3139', zIndex: 999 }}>
+        
+        <button onClick={() => setActiveTab('center')} style={{ background: 'none', border: 'none', color: activeTab === 'center' ? '#FCD535' : '#848e9c', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', fontWeight: 'bold', fontSize: '12px' }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          Центр
+        </button>
+
+        <button onClick={() => setActiveTab('chat')} style={{ background: 'none', border: 'none', color: activeTab === 'chat' ? '#FCD535' : '#848e9c', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', fontWeight: 'bold', fontSize: '12px' }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+          </svg>
+          Чат
+        </button>
+
+        <button onClick={() => setActiveTab('profile')} style={{ background: 'none', border: 'none', color: activeTab === 'profile' ? '#FCD535' : '#848e9c', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', fontWeight: 'bold', fontSize: '12px' }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          Профиль
+        </button>
+
       </nav>
 
-      <main style={{ paddingTop: '65px', paddingLeft: '15px', paddingRight: '15px' }}>
+      <main style={{ paddingTop: '75px', paddingLeft: '15px', paddingRight: '15px' }}>
+        
         {activeTab === 'center' && (
-          <div>
-             {COINS.map((coin) => (
-                <div key={coin.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '15px 0', borderBottom: '1px solid #1e2329' }}>
-                  <div style={{ fontWeight: 'bold' }}>{coin.symbol}</div>
-                  <div style={{ color: prices[coin.id]?.usd_24h_change >= 0 ? '#0ecb81' : '#f6465d' }}>${prices[coin.id]?.usd ? prices[coin.id].usd.toLocaleString() : '...'}</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingTop: '10px' }}>
+            <div>
+              <h1 style={{ fontSize: '26px', fontWeight: 'bold', margin: 0 }}>Привет, {user.first_name || user.nickname}! 👋</h1>
+              <p style={{ color: '#848e9c', margin: '5px 0 0 0' }}>Добро пожаловать на ASRO</p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+              <div onClick={() => setActiveTab('chat')} style={{ background: '#1e2329', padding: '20px', borderRadius: '12px', border: '1px solid #2b3139', cursor: 'pointer', textAlign: 'center' }}>
+                <div style={{ fontSize: '30px', marginBottom: '10px' }}>💬</div>
+                <div style={{ fontWeight: 'bold' }}>Чат</div>
+              </div>
+              <div onClick={() => alert('Раздел в разработке')} style={{ background: '#1e2329', padding: '20px', borderRadius: '12px', border: '1px solid #2b3139', cursor: 'pointer', textAlign: 'center' }}>
+                <div style={{ fontSize: '30px', marginBottom: '10px' }}>📚</div>
+                <div style={{ fontWeight: 'bold' }}>Обучение</div>
+              </div>
+              <div onClick={() => alert('Раздел в разработке')} style={{ background: '#1e2329', padding: '20px', borderRadius: '12px', border: '1px solid #2b3139', cursor: 'pointer', textAlign: 'center' }}>
+                <div style={{ fontSize: '30px', marginBottom: '10px' }}>📡</div>
+                <div style={{ fontWeight: 'bold' }}>Сигналы</div>
+              </div>
+              <div onClick={() => setActiveTab('profile')} style={{ background: '#1e2329', padding: '20px', borderRadius: '12px', border: '1px solid #2b3139', cursor: 'pointer', textAlign: 'center' }}>
+                <div style={{ fontSize: '30px', marginBottom: '10px' }}>👤</div>
+                <div style={{ fontWeight: 'bold' }}>Профиль</div>
+              </div>
+            </div>
+
+            <div style={{ background: '#1e2329', borderRadius: '12px', border: '1px solid #2b3139', overflow: 'hidden', marginTop: '10px' }}>
+              <div style={{ padding: '15px', borderBottom: '1px solid #2b3139', fontWeight: 'bold' }}>Обзор рынка</div>
+              {COINS.map((coin) => (
+                <div key={coin.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '15px', borderBottom: '1px solid #2b3139' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: coin.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold' }}>{coin.symbol[0]}</div>
+                    <div>
+                      <div style={{ fontWeight: 'bold' }}>{coin.symbol}</div>
+                      <div style={{ fontSize: '12px', color: '#848e9c' }}>{coin.name}</div>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontWeight: 'bold' }}>${prices[coin.id]?.usd ? prices[coin.id].usd.toLocaleString() : '...'}</div>
+                    <div style={{ fontSize: '12px', color: prices[coin.id]?.usd_24h_change >= 0 ? '#0ecb81' : '#f6465d' }}>
+                      {prices[coin.id]?.usd_24h_change >= 0 ? '+' : ''}{prices[coin.id]?.usd_24h_change ? prices[coin.id].usd_24h_change.toFixed(2) : '0.00'}%
+                    </div>
+                  </div>
                 </div>
               ))}
+            </div>
           </div>
         )}
 
@@ -226,19 +286,13 @@ export default function Home() {
 
         {activeTab === 'profile' && (
           <div style={{ padding: '20px 0' }}>
-            
-            {/* КАРТОЧКА ПРОФИЛЯ С ПОЛНЫМИ ДАННЫМИ */}
             <div style={{ background: '#1e2329', borderRadius: '16px', padding: '30px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px', border: '1px solid #2b3139' }}>
-              
               <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#FCD535', color: '#000000', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', fontWeight: 'bold', marginBottom: '15px' }}>
                 {user.nickname.charAt(0).toUpperCase()}
               </div>
-              
-              {/* Имя и Фамилия */}
               <h2 style={{ margin: '0 0 5px 0', fontSize: '24px' }}>{user.first_name} {user.last_name}</h2>
               <div style={{ fontSize: '14px', color: '#FCD535', marginBottom: '20px' }}>@{user.nickname}</div>
               
-              {/* Таблица с данными */}
               <div style={{ width: '100%', borderTop: '1px solid #2b3139', paddingTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px' }}>
                   <span style={{ color: '#848e9c' }}>Email</span> <span>{user.email}</span>
@@ -253,9 +307,7 @@ export default function Home() {
                   <span style={{ color: '#848e9c' }}>Опыт на рынке</span> <span>{user.experience} лет</span>
                 </div>
               </div>
-
             </div>
-
             <div style={{ background: '#1e2329', borderRadius: '12px', border: '1px solid #2b3139', overflow: 'hidden' }}>
               <div onClick={() => { localStorage.removeItem('asro_user'); setUser(null); setAuthStep(0); }} style={{ padding: '15px 20px', color: '#f6465d', cursor: 'pointer', textAlign: 'center' }}>🚪 Выйти</div>
             </div>
