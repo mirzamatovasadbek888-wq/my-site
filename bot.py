@@ -17,11 +17,7 @@ JOURNAL = "signals.json"
 NEWS_URL = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
 SCAN_EVERY = 900
 
-KEYBOARD = {"keyboard": [["/gold", "/btc"],
-                         ["/analiz_gold", "/analiz_btc"],
-                         ["/asro"],
-                         ["/stat", "/backtest"]],
-            "resize_keyboard": True}
+KEYBOARD = {"keyboard": [["/gold", "/btc"], ["/analiz_gold", "/analiz_btc"], ["/asro", "/scalping"], ["/stat"]], "resize_keyboard": True}
 
 MENU = [
     ("gold", "Цена золота"),
@@ -621,7 +617,9 @@ def main():
                     send(chat, smc_text("btc"))
                 elif cmd == "/asro":
                     send(chat, asro_text())
-                elif cmd == "/stat":
+                elif cmd == "/scalping":
+        send(chat, scalping_text())
+    elif cmd == "/stat":
                     send(chat, stat_text())
                 elif cmd == "/backtest":
                     send(chat, "Считаю историю, это займёт 1-2 минуты...")
