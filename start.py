@@ -15,7 +15,15 @@ def run_flask():
     app.run(host="0.0.0.0", port=port)
 
 if __name__ == "__main__":
-    # 1. Запускаем веб-сервер для Render
     threading.Thread(target=run_flask, daemon=True).start()
-    # 2. Запускаем твоего бота из bot.py
-    subprocess.run([sys.executable, "bot.py"])
+    print("=== ЗАПУСК БОТА ===", flush=True)
+    
+    process = subprocess.Popen(
+        [sys.executable, "-u", "bot.py"],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True
+    )
+    
+    for line in process.stdout:
+        print(line, end="", flush=True)
