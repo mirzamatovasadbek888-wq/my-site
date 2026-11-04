@@ -617,8 +617,6 @@ def main():
                     send(chat, smc_text("btc"))
                 elif cmd == "/asro":
                     send(chat, asro_text())
-    elif cmd == "/scalping":
-        send(chat, "Скальпинг в разработке!")
     elif cmd == "/stat":
                     send(chat, stat_text())
                 elif cmd == "/backtest":
