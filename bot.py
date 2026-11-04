@@ -651,3 +651,58 @@ def run_flask():
     app.run(host="0.0.0.0", port=port)
 
 threading.Thread(target=run_flask, daemon=True).start()
+
+
+# --- НОВАЯ ЛОГИКА ДЛЯ SCALPING И ASRO ---
+def fast_fvg_check(symbol, interval):
+    import urllib.request, json
+    try:
+        url = f"https://api.binance.com/api/v3/klines?symbol={symbol}&interval={interval}&limit=30"
+        req = urllib.request.urlopen(url, timeout=10)
+        data = json.loads(req.read())
+        signals = []
+        for i in range(len(data)-10, len(data)-1):
+            h2, l0 = float(data[i-2][2]), float(data[i][3])
+            l2, h0 = float(data[i-2][3]), float(data[i][2])
+            close = float(data[-1][4])
+            if h2 < l0 and h2 <= close <= l0:
+                signals.append(f"🟢 BUY: Зона {h2:.2f} - {l0:.2f}")
+            if l2 > h0 and h0 <= close <= l2:
+                signals.append(f"🔴 SELL: Зона {h0:.2f} - {l2:.2f}")
+        return signals
+    except:
+        return []
+
+def scalping_text():
+    btc_5 = fast_fvg_check("BTCUSDT", "5m")
+    btc_15 = fast_fvg_check("BTCUSDT", "15m")
+    res = "⚡️ **SCALPING (5m и 15m)**
+
+"
+    if btc_5: res += "📊 **BTC 5m:**
+" + "
+".join(btc_5) + "
+"
+    if btc_15: res += "📊 **BTC 15m:**
+" + "
+".join(btc_15) + "
+"
+    if not btc_5 and not btc_15: res += "Сейчас нет четких FVG зон. Ждем."
+    return res
+
+def asro_text():
+    btc_1h = fast_fvg_check("BTCUSDT", "1h")
+    btc_30m = fast_fvg_check("BTCUSDT", "30m")
+    res = "🌐 **ASRO (1H и 30m, без фильтров)**
+
+"
+    if btc_1h: res += "📊 **BTC 1H:**
+" + "
+".join(btc_1h) + "
+"
+    if btc_30m: res += "📊 **BTC 30m:**
+" + "
+".join(btc_30m) + "
+"
+    if not btc_1h and not btc_30m: res += "Сейчас нет FVG сетапов на старших ТФ."
+    return res
